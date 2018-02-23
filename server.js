@@ -1,0 +1,57 @@
+const express = require('express');
+const bodyParser = require('body-parser');
+const http = require('http');
+const mongoose = require('mongoose');
+const passport = require('passport');
+const ejs = require('ejs');
+const cors = require('cors');
+//const socketIO = require('socket.io');
+const jwt = require('jsonwebtoken');
+const {User} = require('./helpers/UserClass');
+const _ = require('lodash');
+
+
+const app = express();
+
+const server = require("http").Server(app);
+const io = require("socket.io").listen(server);
+
+
+
+app.use(cors());
+
+// app.use(function(req, res, next) {
+//     res.header("Access-Control-Allow-Origin", "*");
+//     res.header('Access-Control-Allow-Methods', 'GET', 'POST', 'DELETE', 'PUT');
+//     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+//     next();
+// })
+
+mongoose.Promise = global.Promise;
+mongoose.connect('mongodb://localhost/chatapp');
+
+app.use(express.static('public'));
+app.set('view engine', 'ejs');
+app.use(bodyParser.urlencoded({extended: false}));
+app.use(bodyParser.json());
+
+app.use(passport.initialize());
+
+const admin = require('./controllers/admin');
+
+require('./passport/passport-json')(passport);
+
+require('./socket/groupchat')(io, User, _);
+
+const users = require('./routes/users');
+const home = require('./routes/homeRoute');
+
+app.use('/api', users);
+app.use('/api', home);
+
+app.use('/admin', admin);
+
+
+server.listen(3000, function () {
+    console.log('ChatApi running on port 3000');
+});

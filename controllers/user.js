@@ -1,0 +1,109 @@
+const User = require('../models/user');
+const jwt = require('jsonwebtoken');
+const passport = require('passport');
+
+exports.createUser = async (req, res, next) => {
+    const username = req.body.username;
+    const email = req.body.email;
+    const password = req.body.password;
+
+    if(!username){
+        return res.status(422).send({message: 'You must enter a username address'});
+    }
+ 
+    if(!email){
+        return res.status(422).send({message: 'You must enter an email address'});
+    }
+ 
+    if(!password){
+        return res.status(422).send({message: 'You must enter a password'});
+    }
+
+    const user = await User.find({'email': req.body.email});
+    if(user.length >= 1) {
+        return res.status(404).json({message: 'User with email already exist.'});
+    } else {
+        const newUser = new User({
+            username: User.firstUpper(req.body.username),
+            email: req.body.email,
+            password: User.encryptPassword(req.body.password)
+        });
+        
+        newUser.save()
+            .then(result => {
+                const token = jwt.sign({data: newUser}, 'thisisasecret');
+
+                return res.status(200).json({
+                    message: 'User has been created.', 
+                    token: `JWT ${token}`,
+                    user: result
+                });
+            })
+            .catch(err => {
+                res.status(500).json({error: err})
+            })
+    }
+}
+
+exports.authUser = async (req, res) => {
+    const user = await User.findOne({'email': req.body.email});
+    
+    if(!user){
+        return res.status(401).json({message: 'User was not found.'});
+    }
+
+    if(user.compareUserPassword(req.body.password)){
+        const token = jwt.sign({data: user}, 'thisisasecret');
+        // const token = jwt.sign({data: user}, 'thisisasecret', {
+        //     expiresIn: 604800 // 1 week
+        // });
+        return res.status(200).json({
+            message: "Authentication successful",
+            token: `JWT ${token}`,
+            user: user
+        });
+    } else {
+        return res.status(401).json({message: 'Password is incorrect'});
+    }
+}
+
+exports.isAuthenticated = () => {
+    return passport.authenticate('jwt', {session: false})
+    //return res.status(200).json({user: req.user});
+}
+
+exports.protected = (req, res, next) => {
+    var token = getToken(req.headers);
+    console.log(token)
+    if (token) {
+      var decoded = jwt.verify(token, 'thisisasecret');
+      User.findOne({
+        username: decoded.username
+      }, function(err, user) {
+          if (err) throw err;
+   
+          if (!user) {
+            return res.status(403).send({message: 'Authentication failed. User not found.'});
+          } else {
+            // res.json({success: true, msg: 'Welcome in the member area ' + user.name + '!'});
+            return res.status(200).json({message: 'You are authorized', user: user});
+          }
+      });
+    } else {
+      return res.status(403).send({message: 'No token provided.'});
+    }
+    // return res.status(200).json({message: 'You are authorized', user: req.user});
+}
+
+getToken = function (headers) {
+    if (headers && headers.authorization) {
+    var parted = headers.authorization.split(' ');
+    if (parted.length === 2) {
+        return parted[1];
+    } else {
+        return null;
+    }
+    } else {
+    return null;
+    }
+};
