@@ -62,6 +62,6 @@ app.use('/api', file);
 app.use('/admin', admin);
 
 
-server.listen(3000, function () {
-    console.log('ChatApi running on port 3000');
+server.listen(process.env.PORT || 3000, function () {
+    console.log('SoccerchatApi running on port 3000');
 });
