@@ -1,7 +1,7 @@
 const path = require('path');
 const fs = require('fs');
 const cloudinary = require('cloudinary');
-var multipart = require('connect-multiparty')();
+const formidable = require('formidable')
 
 cloudinary.config({
     cloud_name: process.env.CLOUD_NAME,
@@ -10,9 +10,12 @@ cloudinary.config({
 });
 
 
+
+
 exports.addFile = (req, res) => {
-    //console.log(req.body.file)
-    cloudinary.uploader.upload(req.body.file, function (resp) {
+    console.log(req.files);
+    cloudinary.uploader.upload(req.files, function (resp) {
         return res.status(200).json({message: 'File added successfully', response: resp})
     });
+    
 }
