@@ -10,7 +10,6 @@ const {User} = require('./helpers/UserClass');
 const _ = require('lodash');
 const compression = require('compression');
 const helmet = require('helmet');
-const mongoose = require('mongoose');
 
 
 const app = express();
