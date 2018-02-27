@@ -6,7 +6,7 @@ const clubNames = mongoose.Schema({
     image: {type: String, default: 'default.png'},
     fans: [{
         username: {type: String, default: ''},
-        email: {type: String, default: ''}
+//        email: {type: String, default: ''}
     }]
 });
 

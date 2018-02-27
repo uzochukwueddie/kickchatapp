@@ -5,6 +5,21 @@ const userSchema = mongoose.Schema({
     username: {type: String, default: ''},
     email: {type: String, default: ''},
     password: {type: String, default: ''},
+    sentRequest: [{
+        username: {type: String, default: ''}
+    }],
+    request: [{
+//        userId: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
+        username: {type: String, default: ''}
+    }],
+    friends: [{
+//        id: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
+        name: {type: String, default: ''}
+    }],
+    totalRequest: {type: Number, default: 0},
+    favClub: [{
+        name: {type: String}
+    }]
 });
 
 userSchema.statics.encryptPassword = function(password){
