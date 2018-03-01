@@ -13,8 +13,7 @@ cloudinary.config({
 
 
 exports.addFile = (req, res) => {
-    console.log(req.files);
-    cloudinary.uploader.upload(req.files, function (resp) {
+    cloudinary.uploader.upload(req.body.file, function (resp) {
         return res.status(200).json({message: 'File added successfully', response: resp})
     });
     
