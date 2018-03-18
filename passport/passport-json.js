@@ -7,7 +7,7 @@ const LocalStrategy = require('passport-local').Strategy;
 module.exports = function(passport) {
     var opts = {}
     opts.jwtFromRequest = ExtractJwt.fromAuthHeaderWithScheme("jwt");
-    opts.secretOrKey = process.env.JSON_SECRET;    
+    opts.secretOrKey = process.env.JSON_SECRET;
 
     passport.use(new JwtStrategy(opts, (jwt_payload, done) => {
         User.findOne({email: jwt_payload.data.email}, (err, user) => {

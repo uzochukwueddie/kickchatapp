@@ -3,14 +3,16 @@ const Club = require('../models/club');
 const User = require('../models/user');
 const jwt = require('jsonwebtoken');
 const Post = require('../models/posts');
+const moment = require('moment');
+const _ = require('lodash');
 
 exports.getRooms = async (req, res) => {
-    const rooms = await Club.find({});
+    const rooms = await Club.find({}).sort({"name": 1})
     return res.status(200).json({message: 'Rooms Found', rooms: rooms});
 }
 
 exports.getUser = async (req, res) => {
-    const user = await User.findOne({'username': req.params.username});
+    const user = await User.findOne({'username': req.params.username}, {'password': 0});
 
     if(!user) {
       return res.status(403).json({message: 'No user Found'})
@@ -37,8 +39,8 @@ exports.addFriend = async (req, res) => {
     
     await User.update({
         'username': receiver,
-//        'request.username': {$ne: req.body.sender},
-//        'friends.name': {$ne: req.body.sender}
+        'request.username': {$ne: req.body.sender},
+        'friends.name': {$ne: req.body.sender}
     }, {
         $push: {request: {
             username: req.body.sender
@@ -48,7 +50,7 @@ exports.addFriend = async (req, res) => {
     
     await User.update({
         'username': sender,
-//        'sentRequest.username': {$ne: req.body.receiver}
+        'sentRequest.username': {$ne: req.body.receiver}
     }, {
         $push: {sentRequest: {
             username: req.body.receiver
@@ -130,21 +132,29 @@ exports.addFavorite = async (req, res) => {
     
     await User.update({
         'username': req.body.user,
-        'favClub.name': {$ne: req.body.roomName}
+        'favClub': {$ne: req.body.roomName}
     }, {
-        $push: {favClub: {
-            name: req.body.roomName
-        }}
+        $push: {favClub: req.body.roomName}
     })
     
     return res.status(200).json({message: `${req.body.roomName} has been added to favorite`});
 }
 
 exports.getPost = async (req, res) => {
-    const posts = await Post.find({})
-                            .populate("user");
+    var today = moment().startOf('day')
+    var tomorrow = moment(today).add(1, 'days')
     
-    return res.status(200).json({message: `All User's Posts`, posts: posts});
+    const posts = await Post.find({"created": {$gte: today.toDate(), $lt: tomorrow.toDate()}})
+                            .populate("user")
+                            .sort({ "created": -1 });
+
+    
+    const topPost = await Post.find({"created": {$gte: today.toDate(), $lt: tomorrow.toDate()}, "likes": {$gt: 10}})
+                            .populate("user")
+                            .sort({ "likes": -1 });
+    
+    
+    return res.status(200).json({message: `All User's Posts`, posts: posts, top: topPost});
 }
 
 exports.addPost = async (req, res) => {
@@ -206,11 +216,74 @@ exports.postComments = async (req, res) => {
     } else {
         return res.status(200).json({message: 'Comment Added', comments: userComment});
     }
+}
+
+exports.searchRoom = async (req, res) => {
+    const regex = new RegExp(req.body.room, 'gi');
+    const room = await Club.find({"name": regex});
     
-    //return res.status(200).json({message: 'Comment Added', comments: userComment});
+    if(room){
+        return res.status(200).json({message: 'Search Results', rooms: _.uniqBy(room, 'name')});
+    } else {
+        return res.status(200).json({message: 'Search Results Error', rooms: []});
+    }
+}
+
+exports.addRoom = async (req, res) => {
+    const newClub = new Club();
+    newClub.name = firstUpper(req.body.room)
+    newClub.country = firstUpper(req.body.country)
+    newClub.save((err) => {
+        if(err){
+            return res.status(200).json({message: 'Room Creation Error', error: err});
+        }
+        return res.status(200).json({message: 'Room Created', room: newClub});
+    });
+}
+
+exports.blockUser = async (req, res) => {
+    
+    await User.update({
+        'username': req.body.user1,
+        'friends.name': req.body.user2,
+        'blockedUsers': {$ne: req.body.user2},
+    }, {
+        $push: {blockedUsers: req.body.user2}
+    });
+    
+    await User.update({
+        'username': req.body.user2,
+        'friends.name': req.body.user1,
+        'blockedBy': {$ne: req.body.user1},
+    }, {
+        $push: {blockedBy: req.body.user1}
+    });
+    
+    return res.status(200).json({message: 'User Blocked'});
+}
+
+exports.unblockUser = async (req, res) => {
+    
+    await User.update({
+        'username': req.body.user1
+    }, {
+        $pull: { blockedUsers: { $in: [req.body.user2] }}
+    });
+    
+    await User.update({
+        'username': req.body.user2,
+        
+    }, {
+        $pull: { blockedBy: { $in: [req.body.user1] }}
+    });
+    
+    return res.status(200).json({message: 'User Unblocked'});
 }
 
 
+firstUpper = function(name){
+    return name.charAt(0).toUpperCase() + name.slice(1);
+};
 
 
 getToken = function (headers) {

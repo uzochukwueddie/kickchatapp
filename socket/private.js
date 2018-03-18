@@ -17,9 +17,27 @@ module.exports = function(io, _) {
                     sender: message.sender,
                     receiver: message.receiver
                 });
+                
             }
-            
-        })
+        });
+        
+        socket.on('add-img', (to, from, message) => {
+            if(socket.room === to){
+                io.to(message.room1).emit('new message', {
+                    image: message.image,
+                    sender: message.sender,
+                    receiver: message.receiver
+                })
+            }
+        });
+        
+        socket.on('start_typing',function(data){
+            io.to(data.receiver).emit('start_typing', data);
+        });
+        
+        socket.on('stop_typing',function(data){
+            io.to(data.receiver).emit('stop_typing', data);
+        });
 
         
     });

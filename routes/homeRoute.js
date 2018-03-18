@@ -17,6 +17,10 @@ router.post('/user/:username', homeCtrl.addFriend);
 router.post('/home', homeCtrl.addFavorite);
 router.post('/user/:username/posts', homeCtrl.addPost);
 router.post('/user/:username/comments/:postId', homeCtrl.postComments);
+router.post('/search-room', homeCtrl.searchRoom);
+router.post('/add-room', homeCtrl.addRoom);
+router.post('/block-user', homeCtrl.blockUser);
+router.post('/unblock-user', homeCtrl.unblockUser);
 
 
 

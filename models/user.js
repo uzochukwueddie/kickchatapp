@@ -3,23 +3,37 @@ const bcrypt = require('bcrypt-nodejs');
 
 const userSchema = mongoose.Schema({
     username: {type: String, default: ''},
+    fullname: {type: String, default: ''},
     email: {type: String, default: ''},
     password: {type: String, default: ''},
+    userImage: {type: String, default: 'defaultPic.png'},
+    gender: {type: String, default: ''},
+    country: {type: String, default: ''},
+    mantra: {type: String, default: ''},
+    club: {type: String, default: ''},
     sentRequest: [{
         username: {type: String, default: ''}
     }],
     request: [{
-//        userId: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
         username: {type: String, default: ''}
     }],
     friends: [{
-//        id: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
         name: {type: String, default: ''}
     }],
+    blockedUsers: [],
+    blockedBy: [],
     totalRequest: {type: Number, default: 0},
-    favClub: [{
-        name: {type: String}
-    }]
+    favClub: Array,
+    favTeams: [],
+    favPlayers: [],
+    city: {type: String, default: ''},
+    state: {type: String, default: ''},
+    coords: {
+        latitude: {type: String, default: ''},
+        longitude: {type: String, default: ''},
+    },
+    passwordResetToken: {type: String, default: ''},
+    passwordResetExpires: {type: Date, default: Date.now},
 });
 
 userSchema.statics.encryptPassword = function(password){

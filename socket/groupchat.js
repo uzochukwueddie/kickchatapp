@@ -1,7 +1,6 @@
 module.exports = function(io, User, _) {
     const users = new User();
 
-    let userId;
 
     io.on('connection', (socket) => {
         socket.on('join', (params, callback) => {
@@ -22,6 +21,15 @@ module.exports = function(io, User, _) {
             });
         });
         
+        socket.on('add-image', (message) => {
+            io.to(message.room).emit('newMessage', {
+                text: message.text,
+                room: message.room,
+                from: message.sender,
+                image: message.image
+            });
+        });
+        
         socket.on('request', (friend) => {
             io.to(friend.receiver).emit('newFriend', {
                from: friend.sender,
@@ -30,7 +38,7 @@ module.exports = function(io, User, _) {
         });
         
         socket.on('refresh', (friend) => {
-            io.emit('refreshPage', {}); 
+            io.emit('refreshPage', {}) 
         });
 
         

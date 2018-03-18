@@ -21,12 +21,12 @@ exports.createUser = async (req, res, next) => {
 
     const user = await User.find({'email': req.body.email});
     if(user.length >= 1) {
-        return res.status(404).json({message: 'User with email already exist.'});
+        return res.status(200).json({message: 'User with email already exist.'});
     } else {
         const newUser = new User({
             username: User.firstUpper(req.body.username),
             email: req.body.email,
-            password: User.encryptPassword(req.body.password)
+            password: User.encryptPassword(req.body.password),
         });
         
         newUser.save()
@@ -49,24 +49,23 @@ exports.authUser = async (req, res) => {
     const user = await User.findOne({'email': req.body.email});
     
     if(!user){
-        return res.status(401).json({message: 'User was not found.'});
+        return res.status(200).json({message: 'User was not found.'});
     }
 
     if(user.compareUserPassword(req.body.password)){
-        const token = jwt.sign({data: user}, process.env.JSON_SECRET);
+        const token = jwt.sign({data: user}, 'thisisit');
         return res.status(200).json({
             message: "Authentication successful",
             token: `JWT ${token}`,
             user: user
         });
     } else {
-        return res.status(401).json({message: 'Password is incorrect'});
+        return res.status(200).json({message: 'Password is incorrect'});
     }
 }
 
 exports.isAuthenticated = () => {
     return passport.authenticate('jwt', {session: false})
-    //return res.status(200).json({user: req.user});
 }
 
 exports.protected = (req, res, next) => {
@@ -79,16 +78,14 @@ exports.protected = (req, res, next) => {
           if (err) throw err;
    
           if (!user) {
-            return res.status(403).send({message: 'Authentication failed. User not found.'});
+            return res.status(200).send({message: 'Authentication failed. User not found.'});
           } else {
-            // res.json({success: true, msg: 'Welcome in the member area ' + user.name + '!'});
             return res.status(200).json({message: 'You are authorized', user: user});
           }
       });
     } else {
-      return res.status(403).send({message: 'No token provided.'});
+      return res.status(200).send({message: 'No token provided.'});
     }
-    // return res.status(200).json({message: 'You are authorized', user: req.user});
 }
 
 getToken = function (headers) {

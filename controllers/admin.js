@@ -1,4 +1,5 @@
 const Club = require('../models/club');
+const Country = require('../models/countries');
 const express = require("express");
 const router = express.Router();
 
@@ -13,6 +14,18 @@ router.post('/dashboard', (req, res) => {
     newClub.image = req.body.upload;
     newClub.save((err) => {
         res.render('dashboard');
+    });
+});
+
+router.get('/dashboard/add-country', (req, res) => {
+    res.render('add-country');
+});
+
+router.post('/dashboard/add-country', (req, res) => {
+    const country = new Country();
+    country.name = req.body.country;
+    country.save((err) => {
+        res.render('add-country');
     });
 });
 
