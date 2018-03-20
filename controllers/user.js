@@ -53,7 +53,7 @@ exports.authUser = async (req, res) => {
     }
 
     if(user.compareUserPassword(req.body.password)){
-        const token = jwt.sign({data: user}, 'thisisit');
+        const token = jwt.sign({data: user}, process.env.JSON_SECRET);
         return res.status(200).json({
             message: "Authentication successful",
             token: `JWT ${token}`,

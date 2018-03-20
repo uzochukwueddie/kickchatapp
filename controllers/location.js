@@ -24,10 +24,10 @@ exports.getUsersLocation = async (req, res) => {
       { $project : {
         password: 0            
     }},
-      {$match: {"city": req.params.city}}
+      {$match: {"city": req.params.city.replace(/-/g, ' ')}}
     ]);
     
     if(users.length > 0){
-        return res.status(200).json({message: 'Nearby Users Returned', nearby: users}); 
+        return res.status(200).json({message: 'Nearby Users Returned', nearby: users});
     }
 }

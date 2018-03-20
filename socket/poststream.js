@@ -13,8 +13,15 @@ module.exports = function(io) {
                 user: message.sender.user,
                 msg: message.post
             });
-            
-        })
+        });
+        
+        socket.on('post-img', (message) => {
+            io.to(message.room).emit('new stream', {
+                post: message.text,
+                user: message.sender.user,
+                image: message.image
+            });
+        });
 
         
     });

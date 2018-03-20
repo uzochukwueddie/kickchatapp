@@ -5,6 +5,15 @@ const jwt = require('jsonwebtoken');
 const Post = require('../models/posts');
 const moment = require('moment');
 const _ = require('lodash');
+const cloudinary = require('cloudinary');
+
+cloudinary.config({
+    cloud_name: process.env.CLOUD_NAME,
+    api_key: process.env.API_KEY,
+    api_secret: process.env.API_SECRET
+});
+
+
 
 exports.getRooms = async (req, res) => {
     const rooms = await Club.find({}).sort({"name": 1})
@@ -12,17 +21,20 @@ exports.getRooms = async (req, res) => {
 }
 
 exports.getUser = async (req, res) => {
-    const user = await User.findOne({'username': req.params.username}, {'password': 0});
+    const username = req.params.username.replace(/-/g, ' ');
+    const user = await User.findOne({'username': username}, {'password': 0})
+                            .populate('request.senderId')
+                            .populate('friends.friendId')
 
     if(!user) {
-      return res.status(403).json({message: 'No user Found'})
+      return res.status(200).json({message: 'No user Found'})
     } else {
-      return res.status(200).json({message: 'User data returned', user: user});
+      return res.status(200).json({message: 'User data returned', user: user})
     }
 }
 
 exports.getRoom = (req, res) => {
-  return res.status(200).json({message: 'Chat Room', room: req.params.name});
+    return res.status(200).json({message: 'Chat Room', room: req.params.name.replace(/-/g, ' ')});
 }
 
 exports.addFriend = async (req, res) => {
@@ -43,7 +55,8 @@ exports.addFriend = async (req, res) => {
         'friends.name': {$ne: req.body.sender}
     }, {
         $push: {request: {
-            username: req.body.sender
+            username: req.body.sender,
+            senderId: req.body.senderId
         }},
         $inc: {totalRequest: 1}
     });
@@ -66,7 +79,8 @@ exports.addFriend = async (req, res) => {
         'friends.name': {$ne: req.body.senderName}
     }, {
         $push: {friends: {
-            name: req.body.senderName
+            name: req.body.senderName,
+            friendId: req.body.senderid
         }},
         $pull: {request: {
             username: req.body.senderName
@@ -79,7 +93,8 @@ exports.addFriend = async (req, res) => {
         'friends.name': {$ne: req.body.receiverName}
     }, {
         $push: {friends: {
-            name: req.body.receiverName
+            name: req.body.receiverName,
+            friendId: req.body.receiverid
         }},
         $pull: {sentRequest: {
             username: req.body.receiverName
@@ -142,35 +157,68 @@ exports.addFavorite = async (req, res) => {
 
 exports.getPost = async (req, res) => {
     var today = moment().startOf('day')
-    var tomorrow = moment(today).add(1, 'days')
+    var tomorrow = moment(today).add(1, 'days');
     
-    const posts = await Post.find({"created": {$gte: today.toDate(), $lt: tomorrow.toDate()}})
-                            .populate("user")
-                            .sort({ "created": -1 });
+    var date = new Date();
+    var daysToDeletion = 1;
+    var deletionDate = new Date(date.setDate(date.getDate() - daysToDeletion));
+    
+    const del = await Post.remove({"created": {$lt : deletionDate}});
+    
+    if(del){
+        const posts = await Post.find({"created": {$gte: today.toDate(), $lt: tomorrow.toDate()}})
+                                .populate("user")
+                                .sort({ "created": -1 });
 
-    
-    const topPost = await Post.find({"created": {$gte: today.toDate(), $lt: tomorrow.toDate()}, "likes": {$gt: 10}})
-                            .populate("user")
-                            .sort({ "likes": -1 });
-    
-    
-    return res.status(200).json({message: `All User's Posts`, posts: posts, top: topPost});
+
+        const topPost = await Post.find({"created": {$gte: today.toDate(), $lt: tomorrow.toDate()}, "likes": {$gt: 10}})
+                                .populate("user")
+                                .sort({ "likes": -1 });
+
+
+        return res.status(200).json({message: `All User's Posts`, posts: posts, top: topPost});
+    }
 }
 
 exports.addPost = async (req, res) => {
-    const userId = req.body.id;
-    const username = req.body.username;
-    const post = req.body.post;
+    if(req.body.post && (req.body.post !== '' || req.body.post !== undefined) && !req.body.image){
+        const userId = req.body.id;
+        const username = req.body.username;
+        const post = req.body.post;
+
+        const newPost = new Post();
+        newPost.user = userId;
+        newPost.username = username;
+        newPost.post = post;
+        newPost.created = new Date();
+
+        const post2 = await newPost.save();
+
+        return res.status(200).json({message: 'Post Added', posts: post2});   
+    }
     
-    const newPost = new Post();
-    newPost.user = userId;
-    newPost.username = username;
-    newPost.post = post;
-    newPost.created = new Date();
     
-    const post2 = await newPost.save();
-    
-    return res.status(200).json({message: 'Post Added', posts: post2});
+    if(req.body.post && req.body.image){
+        cloudinary.uploader.upload(req.body.image, async function (resp) {
+            if(req.body.image){
+                const userId = req.body.id;
+                const username = req.body.username;
+                const post = req.body.post;
+
+                const newPost = new Post();
+                newPost.user = userId;
+                newPost.username = username;
+                newPost.post = post;
+                newPost.created = new Date();
+                newPost.imageVersion = resp.version;
+                newPost.imageId = resp.public_id;
+
+                const post2 = await newPost.save();
+
+                return res.status(200).json({message: 'Post added successfully', posts: post2})
+            }
+        });
+    }
 }
 
 exports.getComments = async (req, res) => {
@@ -219,7 +267,8 @@ exports.postComments = async (req, res) => {
 }
 
 exports.searchRoom = async (req, res) => {
-    const regex = new RegExp(req.body.room, 'gi');
+    const searchName = req.body.room.replace(/-/g, ' ');
+    const regex = new RegExp(searchName, 'gi');
     const room = await Club.find({"name": regex});
     
     if(room){
@@ -287,7 +336,7 @@ firstUpper = function(name){
 
 
 getToken = function (headers) {
-  console.log(headers.authorization)
+//  console.log(headers.authorization)
     if (headers && headers.authorization) {
       var parted = headers.authorization.split(' ');
       if (parted.length === 2) {

@@ -7,6 +7,7 @@ const userSchema = mongoose.Schema({
     email: {type: String, default: ''},
     password: {type: String, default: ''},
     userImage: {type: String, default: 'defaultPic.png'},
+    imageVersion: {type: Number, default: 1521534486},
     gender: {type: String, default: ''},
     country: {type: String, default: ''},
     mantra: {type: String, default: ''},
@@ -15,10 +16,12 @@ const userSchema = mongoose.Schema({
         username: {type: String, default: ''}
     }],
     request: [{
-        username: {type: String, default: ''}
+        username: {type: String, default: ''},
+        senderId: {type: mongoose.Schema.Types.ObjectId, ref: 'User'}
     }],
     friends: [{
-        name: {type: String, default: ''}
+        name: {type: String, default: ''},
+        friendId: {type: mongoose.Schema.Types.ObjectId, ref: 'User'}
     }],
     blockedUsers: [],
     blockedBy: [],

@@ -5,14 +5,13 @@ const formidable = require('formidable');
 const RoomMessage = require('../models/groupmessage');
 const Message = require('../models/message');
 const Conversation = require('../models/conversation');
+const User = require('../models/user');
 
 cloudinary.config({
     cloud_name: process.env.CLOUD_NAME,
     api_key: process.env.API_KEY,
     api_secret: process.env.API_SECRET
 });
-
-
 
 
 exports.addFile = (req, res) => {
@@ -47,10 +46,32 @@ exports.addFile = (req, res) => {
     
 }
 
+exports.profileImage = async (req, res) => {
+    cloudinary.uploader.upload(req.body.image, async function (resp) {
+        const saveData = async () => {
+            if(req.body.username){
+                const userImage = await User.update({
+                    "username": req.body.username
+                }, {
+                    "userImage": resp.public_id,
+                    "imageVersion": resp.version
+                });
+            }
+        }
+        
+        saveData()
+            .then(result => {
+                return res.status(200).json({message: 'Profile picture added.'})
+            })
+            .catch(err => {
+                return res.status(200).json({message: err});
+            });
+    });
+}
+
 
 
 exports.privateChat = (req, res) => {
-    
     cloudinary.uploader.upload(req.body.file, function (resp) {
         
         const senderId = req.body.senderId;
@@ -66,6 +87,8 @@ exports.privateChat = (req, res) => {
                         'conversationId': results[0]._id
                     }, {
                         $push: {message: {
+                            senderId: senderId,
+                            receiverId: receiverId,
                             sendername: req.body.sendername,
                             receivername: req.body.receivername,
                             imageId: resp.public_id,
@@ -98,6 +121,8 @@ exports.privateChat = (req, res) => {
                     newMessage.sender = req.body.sendername,
                     newMessage.receiver = req.body.receivername, 
                     newMessage.message.push({
+                        senderId: req.body.senderId,
+                        receiverId: req.body.receiverId,
                         sendername: req.body.sendername,
                         receivername: req.body.receivername,
                         imageId: resp.public_id,
@@ -121,3 +146,27 @@ exports.privateChat = (req, res) => {
     });
     
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

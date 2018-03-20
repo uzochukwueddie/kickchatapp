@@ -9,6 +9,8 @@ const MessageSchema = mongoose.Schema({
     receiver: {type: String},
     message: [
         {
+            senderId: {type: mongoose.Schema.Types.ObjectId},
+            receiverId: {type: mongoose.Schema.Types.ObjectId},
             sendername: {type: String},
             receivername: {type: String},
             body: {type: String, default: ''},

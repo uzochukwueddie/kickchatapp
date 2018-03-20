@@ -1,13 +1,14 @@
 module.exports = function(io, Global, _) {
-    var global = new Global();
+    var global = new Global()
     
 
     io.on('connection', (socket) => {
         socket.on('online', (params) => {
-            socket.join(params.room);
-            global.EnterRoom(socket.id, params.user.user.username, params.room)
-            
-            io.emit('userOnline', _.uniq(global.GetRoomList(params.room)));
+            if(typeof params.user !== undefined){
+                socket.join(params.room);
+                global.EnterRoom(socket.id, params.user, params.room)
+                io.emit('userOnline', _.uniq(global.GetRoomList(params.room)))
+            }
             
 
         });
@@ -18,6 +19,13 @@ module.exports = function(io, Global, _) {
         
         socket.on('myonline', (data) => {
             io.emit('userOnline', _.uniq(global.GetRoomList(data.room)));
+        });
+        
+        socket.on('profile-img', (profile) => {
+            console.log(profile.name)
+            io.emit('profile image', {
+                image: profile.image
+            })
         })
         
         socket.on('disconnect', () => {

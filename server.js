@@ -53,6 +53,7 @@ require('./socket/private')(io, _);
 require('./socket/poststream')(io);
 require('./socket/global')(io, Global, _);
 require('./socket/country')(io, CountryRoom, _);
+require('./socket/profileimg')(io);
 
 const users = require('./routes/users');
 const home = require('./routes/homeRoute');

@@ -44,7 +44,6 @@ exports.getCode = async (req, res, next) => {
 }
 
 exports.resetPassword = async (req, res, next) => {
-    console.log(req.body)
     const user = await User.findOne({email: req.body.email, passwordResetExpires: {$gt: Date.now()}});
     
     if(!user){

@@ -11,7 +11,9 @@ const posts = mongoose.Schema({
         createdAt: {type: Date, default: Date.now()}
     }],
     likes: {type: Number, default: 0},
-    created: {type: Date, default: Date.now()}
+    created: {type: Date, default: Date.now()},
+    imageVersion: {type: String, default: ''},
+    imageId: {type: String, default: ''}
 });
 
 module.exports = mongoose.model('Post', posts);

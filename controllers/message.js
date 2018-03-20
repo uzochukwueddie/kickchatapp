@@ -4,11 +4,13 @@ const Conversation = require('../models/conversation');
 
 
 exports.getMessages = async (req, res) => {
+    const senderName = req.params.sender.replace(/-/g, ' ');
+    const receiverName = req.params.receiver.replace(/-/g, ' ');
     
     let conversations = await Conversation.findOne({
                         $or : [
-                            { $and : [ {'participants.sender': req.params.sender}, {'participants.receiver': req.params.receiver} ] },
-                            { $and : [ {'participants.sender': req.params.receiver}, {'participants.receiver': req.params.sender} ] }]
+                            { $and : [ {'participants.sender': senderName}, {'participants.receiver': receiverName} ] },
+                            { $and : [ {'participants.sender': receiverName}, {'participants.receiver': senderName} ] }]
                         })
                         .select('_id')
                         .populate('participants.sender')
@@ -16,7 +18,7 @@ exports.getMessages = async (req, res) => {
     
     
     if(conversations) {
-        const messages = await Message.findOne({"conversationId": conversations._id});
+        const messages = await Message.findOne({"conversationId": conversations._id})
     
         return res.status(200).json({
             message: 'Messages returned successfully', 
@@ -26,9 +28,10 @@ exports.getMessages = async (req, res) => {
 }
 
 exports.getMessage = async (req, res) => {
+    const senderName = req.params.sender.replace(/-/g, ' ');
             
     Message.aggregate([
-        {$match:{$or:[{"sender":req.params.sender}, {"receiver":req.params.sender}]}},
+        {$match:{$or:[{"sender": senderName}, {"receiver": senderName}]}},
         {$sort:{"nessage.createdAt": -1}},
         {
             $group:{"_id":{
@@ -76,11 +79,13 @@ exports.getMessage = async (req, res) => {
 exports.receiverMessage = async (req, res) => {
     
     const msg = await Message.aggregate([
-      {$match: {'message.receivername': req.params.name}},
+      {$match: {'message.receivername': req.params.name.replace(/-/g, ' ')}},
+      {$lookup: {from: 'users', localField: 'message.senderId', foreignField: '_id', as: 'user'} },
       {$unwind: "$message"},
-      {$match: {"message.receivername": req.params.name}},
+      {$match: {"message.receivername": req.params.name.replace(/-/g, ' ')}},
       { $sort: { 'message.createdAt': -1 }}
-    ])
+    ]);
+    
     
     if(msg.length > 0){
         return res.status(200).json({message: 'User Messages', messages: msg})
@@ -88,11 +93,12 @@ exports.receiverMessage = async (req, res) => {
 }
 
 exports.markMessage = async (req, res) => {
+    const receiverName = req.params.receivername.replace(/-/g, ' ')
     
     const msg = await Message.aggregate([
-      {$match: {'message.receivername': req.params.receivername}},
+      {$match: {'message.receivername': receiverName}},
       {$unwind: "$message"},
-      {$match: {"message.receivername": req.params.receivername}},
+      {$match: {"message.receivername": receiverName}},
       { $sort: { 'message.createdAt': -1 }}
     ])
     
@@ -120,8 +126,8 @@ exports.markAsMessage = async (req, res) => {
 
 
 exports.saveMessage = async (req, res) => {
-    const senderId = req.params.sender;
-    const receiverId = req.params.receiver;
+    const senderId = req.params.sender.replace(/-/g, ' ');
+    const receiverId = req.params.receiver.replace(/-/g, ' ');
     
     Conversation.find({$or: [
         {participants: {$elemMatch: {sender:senderId, receiver:receiverId}}},
@@ -133,6 +139,8 @@ exports.saveMessage = async (req, res) => {
                     'conversationId': results[0]._id
                 }, {
                     $push: {message: {
+                        senderId: senderId,
+                        receiverId: receiverId,
                         sendername: req.body.sendername,
                         receivername: req.body.receivername,
                         body: req.body.message
@@ -153,8 +161,8 @@ exports.saveMessage = async (req, res) => {
             const saveMessage = async () => {
                 const newConversation = new Conversation();
                 newConversation.participants.push({
-                    sender: req.params.sender,
-                    receiver: req.params.receiver
+                    sender: req.params.sender.replace(/-/g, ' '),
+                    receiver: req.params.receiver.replace(/-/g, ' ')
                 });
 
                 const saveConversation = await newConversation.save();
@@ -164,6 +172,8 @@ exports.saveMessage = async (req, res) => {
                 newMessage.sender = req.body.sendername,
                 newMessage.receiver = req.body.receivername, 
                 newMessage.message.push({
+                    senderId: req.params.sender,
+                    receiverId: req.params.sender,
                     sendername: req.body.sendername, 
                     receivername: req.body.receivername, 
                     body: req.body.message

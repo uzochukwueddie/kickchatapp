@@ -4,11 +4,25 @@ const RoomMessage = require('../models/groupmessage');
 
 
 exports.getRoomMessages = async (req, res) => {
-    const roomMsg = await RoomMessage.find({'room': req.params.roomname});
+    var date = new Date();
+    var daysToDeletion = 1;
+    
+    
+    const roomMsg = await RoomMessage.find({'room': req.params.roomname.replace(/-/g, ' ')});
     
     if(roomMsg){
-        return res.status(200).json({message: 'Room Messages', room: roomMsg})
+        var deletionDate = new Date(date.setDate(date.getDate() - daysToDeletion));
+        const del = await RoomMessage.remove({createdAt : {$lt : deletionDate}});
+        
+        const msg = await RoomMessage.find({'room': req.params.roomname.replace(/-/g, ' ')});
+        
+        if(msg){
+            return res.status(200).json({message: 'Room Messages', room: msg})
+        }
+        
     }
+    
+    
 }
 
 exports.saveRoomMsg = async (req, res) => {
