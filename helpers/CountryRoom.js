@@ -4,8 +4,8 @@ class CountryRoom {
         this.country = [];
     }
     
-    AddUserData(id, name, room){
-        var users = {id, name, room};
+    AddUserData(id, name, room, data){
+        var users = {id, name, room, data};
         this.country.push(users);
         return users;
     }
@@ -31,7 +31,8 @@ class CountryRoom {
         var namesArray = users.map((user) => {
             return {
                 name: user.name,
-                room: user.room
+                room: user.room,
+                userdata: user.data
             }
         });
         

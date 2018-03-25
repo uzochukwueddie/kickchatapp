@@ -4,8 +4,8 @@ class User {
         this.users = [];
     }
     
-    AddUserData(id, name, room){
-        var users = {id, name, room};
+    AddUserData(id, name, room, data){
+        var users = {id, name, room, data};
         this.users.push(users);
         return users;
     }
@@ -31,7 +31,8 @@ class User {
         var namesArray = users.map((user) => {
             return {
                 name: user.name,
-                room: user.room
+                room: user.room,
+                userdata: user.data
             }
         });
         

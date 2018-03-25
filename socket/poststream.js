@@ -11,17 +11,20 @@ module.exports = function(io) {
             io.emit('new stream', {
                 post: message.text,
                 user: message.sender.user,
-                msg: message.post
+                msg: message.post,
+                isUser: true,
+                sender: message.sender.user.username
             });
         });
         
         socket.on('post-img', (message) => {
-            io.to(message.room).emit('new stream', {
+            io.to(message.room).emit('post stream', {
                 post: message.text,
                 user: message.sender.user,
-                image: message.image
+                image: message.image,
+                msg: ''
             });
-        });
+        })
 
         
     });

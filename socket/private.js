@@ -31,12 +31,24 @@ module.exports = function(io, _) {
             }
         });
         
+        socket.on('newRefresh', () => {
+            io.emit('newrefreshPage', {}) 
+        })
+        
         socket.on('start_typing',function(data){
             io.to(data.receiver).emit('start_typing', data);
         });
         
         socket.on('stop_typing',function(data){
             io.to(data.receiver).emit('stop_typing', data);
+        });
+        
+        socket.on('start_typing',function(data){
+            io.emit('start_typing', data);
+        });
+        
+        socket.on('stop_typing',function(data){
+            io.emit('stop_typing', data);
         });
 
         

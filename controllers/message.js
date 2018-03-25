@@ -96,31 +96,33 @@ exports.markMessage = async (req, res) => {
     const receiverName = req.params.receivername.replace(/-/g, ' ')
     
     const msg = await Message.aggregate([
-      {$match: {'message.receivername': receiverName}},
+      {$match: {$and: [{'message.receivername': req.body.receiver, 'message.sendername':req.body.sender}]}},
       {$unwind: "$message"},
-      {$match: {"message.receivername": receiverName}},
+      {$match: {$and: [{'message.receivername': req.body.receiver, 'message.sendername':req.body.sender}]}},
       { $sort: { 'message.createdAt': -1 }}
     ])
     
-    msg.forEach(async function(val){
-        const msg2 = await Message.update({
-            "message._id": val.message._id
-        },
-        { "$set": { "message.$.isRead": true } }
-        )
-    })
+    if(msg.length > 0){
+        msg.forEach(async function(val){
+            const msg2 = await Message.update({
+                "message._id": val.message._id
+            },
+            { "$set": { "message.$.isRead": true } }
+            )
+        })
+    }
     
     return res.status(200).json({message: 'Messages marked as read'});
 }
 
 exports.markAsMessage = async (req, res) => {
     
-    const msg = await Message.update(
-      { "message._id": req.body.messageId },
-      {$set: {
-        "message.$.isRead": true
-      }}
-    )
+//    const msg = await Message.update(
+//      { "message._id": req.body.messageId },
+//      {$set: {
+//        "message.$.isRead": true
+//      }}
+//    )
     
 }
 

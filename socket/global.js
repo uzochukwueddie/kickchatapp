@@ -22,11 +22,10 @@ module.exports = function(io, Global, _) {
         });
         
         socket.on('profile-img', (profile) => {
-            console.log(profile.name)
             io.emit('profile image', {
                 image: profile.image
             })
-        })
+        });
         
         socket.on('disconnect', () => {
             const user = global.RemoveUser(socket.id);

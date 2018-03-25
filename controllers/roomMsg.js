@@ -26,17 +26,17 @@ exports.getRoomMessages = async (req, res) => {
 }
 
 exports.saveRoomMsg = async (req, res) => {
-    if(req.body.message){
-        const room = new RoomMessage();
-        room.senderId = req.body.senderId;
-        room.room = req.body.room;
-        room.name = req.body.name;
-        room.message = req.body.message;
-        
-        const saved = await room.save();
-        
-        if(saved){
-            return res.status(200).json({message: 'Message saved successfully'})
-        }
-    }
+//    if(req.body.message){
+//        const room = new RoomMessage();
+//        room.senderId = req.body.senderId;
+//        room.room = req.body.room;
+//        room.name = req.body.name;
+//        room.message = req.body.message;
+//        
+//        const saved = await room.save();
+//        
+//        if(saved){
+//            return res.status(200).json({message: 'Message saved successfully'})
+//        }
+//    }
 }
