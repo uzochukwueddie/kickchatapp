@@ -8,7 +8,7 @@ module.exports = function(passport) {
     var opts = {}
     opts.jwtFromRequest = ExtractJwt.fromAuthHeaderWithScheme("jwt");
     opts.secretOrKey = process.env.JSON_SECRET;
-//    opts.secretOrKey = ''
+//    opts.secretOrKey = 'thisisit'
 
     passport.use(new JwtStrategy(opts, (jwt_payload, done) => {
         User.findOne({email: jwt_payload.data.email}, (err, user) => {
@@ -30,6 +30,8 @@ module.exports = function(passport) {
     }, function(req, email, password, done){
  
         User.findOne({"email": email}, function(err, user){
+            
+            //console.log(user)
      
             if(err){
                 return done(err);

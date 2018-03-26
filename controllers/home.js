@@ -21,7 +21,7 @@ exports.getRooms = async (req, res) => {
 }
 
 exports.getUser = async (req, res) => {
-    const username = req.params.username.replace(/-/g, ' ');
+    const username = req.params.username.replace(/-/g, ' '); //use req.body.username
     const user = await User.findOne({'username': username}, {'password': 0})
                             .populate('request.senderId')
                             .populate('friends.friendId')
@@ -34,7 +34,7 @@ exports.getUser = async (req, res) => {
 }
 
 exports.getRoom = (req, res) => {
-    return res.status(200).json({message: 'Chat Room', room: req.params.name.replace(/-/g, ' ')});
+    return res.status(200).json({message: 'Chat Room', room: req.params.name.replace(/-/g, ' ')}); //use req.body.username
 }
 
 exports.addFriend = async (req, res) => {
@@ -156,6 +156,8 @@ exports.addFavorite = async (req, res) => {
 }
 
 exports.getPost = async (req, res) => {
+    
+    
     var today = moment().startOf('day')
     var tomorrow = moment(today).add(1, 'days');
     
@@ -222,7 +224,7 @@ exports.addPost = async (req, res) => {
 }
 
 exports.getComments = async (req, res) => {
-    const userComment = await Post.findOne({"_id": req.params.postId})
+    const userComment = await Post.findOne({"_id": req.params.postId}) //user req.body.postId
                                         .populate("user")
                                         .populate("comment.id");
     
@@ -336,15 +338,14 @@ firstUpper = function(name){
 
 
 getToken = function (headers) {
-//  console.log(headers.authorization)
-    if (headers && headers.authorization) {
-      var parted = headers.authorization.split(' ');
-      if (parted.length === 2) {
-        return parted[1];
-      } else {
-        return null;
-      }
+  if (headers && headers.authorization) {
+    var parted = headers.authorization.split(' ');
+    if (parted.length === 2) {
+      return parted[1];
     } else {
       return null;
     }
-  };
+  } else {
+    return null;
+  }
+};

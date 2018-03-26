@@ -17,31 +17,31 @@ cloudinary.config({
 exports.addFile = (req, res) => {
     
     cloudinary.uploader.upload(req.body.file, function (resp) {
-        const saveData = async () => {
-            if(req.body.room){
-                const room = new RoomMessage();
-                room.senderId = req.body.senderId;
-                room.room = req.body.room;
-                room.name = req.body.sender;
-                room.imageVersion = resp.version;
-                room.imageId = resp.public_id;
-
-                const saved = await room.save();
-
-                fs.unlink(req.body.img, function (err) {
-                  if (err) throw err;
-                  console.log(`successfully deleted ${req.body.img}`);
-                });
-            }
-        }
-        
-        saveData()
-            .then(result => {
-                return res.status(200).json({message: 'File added successfully'})
-            })
-            .catch(err => {
-                return res.status(200).json({message: err});
-            });
+//        const saveData = async () => {
+//            if(req.body.room){
+//                const room = new RoomMessage();
+//                room.senderId = req.body.senderId;
+//                room.room = req.body.room;
+//                room.name = req.body.sender;
+//                room.imageVersion = resp.version;
+//                room.imageId = resp.public_id;
+//
+//                const saved = await room.save();
+//
+//                fs.unlink(req.body.img, function (err) {
+//                  if (err) throw err;
+//                  console.log(`successfully deleted ${req.body.img}`);
+//                });
+//            }
+//        }
+//        
+//        saveData()
+//            .then(result => {
+//                return res.status(200).json({message: 'File added successfully'})
+//            })
+//            .catch(err => {
+//                return res.status(200).json({message: err});
+//            });
     });
     
 }

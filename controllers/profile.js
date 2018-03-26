@@ -5,7 +5,7 @@ const Country = require('../models/countries');
 
 
 exports.getProfile = async (req, res) => {
-    const profile = await User.findOne({"username": req.params.username.replace(/-/g, ' ')}, {"password":0})
+    const profile = await User.findOne({"username": req.params.username.replace(/-/g, ' ')}, {"password":0}) //use req.body.username
                             .populate('request.senderId')
                             .populate('friends.friendId')
     
@@ -19,7 +19,7 @@ exports.addProfile = async (req, res) => {
     
     if(data){
         const profile = await User.update({
-            "username": req.params.username.replace(/-/g, ' ')
+            "username": req.params.username.replace(/-/g, ' ') //use req.body.username
         }, {
             "fullname": req.body.name,
             "country": req.body.country,
@@ -38,7 +38,7 @@ exports.addProfile = async (req, res) => {
 exports.addInterest = async (req, res) => {    
     if(req.body.clubs !== undefined){
         await User.update({
-            "username": req.params.username.replace(/-/g, ' '),
+            "username": req.params.username.replace(/-/g, ' '), //use req.body.username
             'favClub': {$ne: req.body.clubs}
         }, {
             $addToSet: { "favClub": { $each: req.body.clubs } },
@@ -47,7 +47,7 @@ exports.addInterest = async (req, res) => {
     
     if(req.body.players !== undefined){
         await User.update({
-            "username": req.params.username.replace(/-/g, ' '),
+            "username": req.params.username.replace(/-/g, ' '), //use req.body.username
             'favPlayers': {$ne: req.body.players}
         }, {
             $push: { "favPlayers": req.body.players },

@@ -12,12 +12,15 @@ const {CountryRoom} = require('./helpers/CountryRoom');
 const _ = require('lodash');
 const compression = require('compression');
 const helmet = require('helmet');
+const morgan = require('morgan');
+//var ejwt = require('express-jwt');
 
 
 const app = express();
 
 app.use(compression())
 app.use(helmet());
+
 
 
 const server = require("http").Server(app);
@@ -37,6 +40,8 @@ mongoose.Promise = global.Promise;
 mongoose.connect(process.env.MONGODB_URI);
 //mongoose.connect('mongodb://localhost/chatapp');
 
+
+
 app.use(express.static('public'));
 app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({extended: false}));
@@ -46,7 +51,8 @@ app.use(passport.initialize());
 
 const admin = require('./controllers/admin');
 
-require('./passport/passport-json')(passport);
+//require('./passport/passport-json')(passport);
+require('./passport/passport-file')
 
 require('./socket/groupchat')(io, User, _);
 require('./socket/private')(io, _);
@@ -72,6 +78,8 @@ app.use('/api', message);
 app.use('/api', location);
 app.use('/api', country);
 app.use('/api', reset);
+
+
 
 app.use('/admin', admin);
 

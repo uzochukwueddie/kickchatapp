@@ -8,20 +8,20 @@ exports.createUser = async (req, res, next) => {
     const password = req.body.password;
 
     if(!username){
-        return res.status(422).send({message: 'You must enter a username address'});
+        return res.status(422).send({error: 'You must enter a username address'});
     }
  
     if(!email){
-        return res.status(422).send({message: 'You must enter an email address'});
+        return res.status(422).send({error: 'You must enter an email address'});
     }
  
     if(!password){
-        return res.status(422).send({message: 'You must enter a password'});
+        return res.status(422).send({error: 'You must enter a password'});
     }
 
     const user = await User.find({'email': req.body.email});
     if(user.length >= 1) {
-        return res.status(200).json({message: 'User with email already exist.'});
+        return res.status(200).json({error: 'User with email already exist.'});
     } else {
         const newUser = new User({
             username: User.firstUpper(req.body.username),
@@ -32,7 +32,6 @@ exports.createUser = async (req, res, next) => {
         newUser.save()
             .then(result => {
                 const token = jwt.sign({data: newUser}, process.env.JSON_SECRET);
-//            const token = jwt.sign({data: newUser}, '');
 
                 return res.status(200).json({
                     message: 'User has been created.', 
@@ -46,29 +45,40 @@ exports.createUser = async (req, res, next) => {
     }
 }
 
-exports.authUser = async (req, res) => {
-    const user = await User.findOne({'email': req.body.email});
-    
-    if(!user){
-        return res.status(200).json({message: 'User was not found.'});
-    }
-
-    if(user.compareUserPassword(req.body.password)){
+exports.authUser = async (req, res) => {    
+    passport.authenticate('local-login', {session: false}, (err, user, info) => {
+        if (err) {
+            return res.status(400).json({
+                error: info ? info.message : 'Login failed',
+                user   : user
+            });
+        }
+        
+        if(!user || !user.compareUserPassword(req.body.password)){
+            return res.status(200).json({error: 'User was not found or Password is incorrect'});
+        } 
+        
+        if(user.compareUserPassword(req.body.password)){
         const token = jwt.sign({data: user}, process.env.JSON_SECRET);
-//        const token = jwt.sign({data: user}, '');
-        return res.status(200).json({
-            message: "Authentication successful",
-            token: `JWT ${token}`,
-            user: user
-        });
-    } else {
-        return res.status(200).json({message: 'Password is incorrect'});
-    }
+            return res.status(200).json({
+                message: "Authentication successful",
+                token: `JWT ${token}`,
+                user: user
+            });
+        }
+
+        if(!user.compareUserPassword(req.body.password)){
+            return res.status(200).json({error: 'Password is incorrect'});
+        }
+
+        
+    })
+    (req, res);
+    
+    
 }
 
-exports.isAuthenticated = () => {
-    return passport.authenticate('jwt', {session: false})
-}
+
 
 exports.protected = (req, res, next) => {
     var token = getToken(req.headers);

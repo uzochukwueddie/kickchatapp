@@ -4,8 +4,8 @@ const Conversation = require('../models/conversation');
 
 
 exports.getMessages = async (req, res) => {
-    const senderName = req.params.sender.replace(/-/g, ' ');
-    const receiverName = req.params.receiver.replace(/-/g, ' ');
+    const senderName = req.params.sender.replace(/-/g, ' '); //use req.body.sender
+    const receiverName = req.params.receiver.replace(/-/g, ' '); //use req.body.receiver
     
     let conversations = await Conversation.findOne({
                         $or : [
@@ -28,7 +28,7 @@ exports.getMessages = async (req, res) => {
 }
 
 exports.getMessage = async (req, res) => {
-    const senderName = req.params.sender.replace(/-/g, ' ');
+    const senderName = req.params.sender.replace(/-/g, ' '); //use req.body.sender
             
     Message.aggregate([
         {$match:{$or:[{"sender": senderName}, {"receiver": senderName}]}},
@@ -79,10 +79,10 @@ exports.getMessage = async (req, res) => {
 exports.receiverMessage = async (req, res) => {
     
     const msg = await Message.aggregate([
-      {$match: {'message.receivername': req.params.name.replace(/-/g, ' ')}},
+      {$match: {'message.receivername': req.params.name.replace(/-/g, ' ')}}, //use req.body.name
       {$lookup: {from: 'users', localField: 'message.senderId', foreignField: '_id', as: 'user'} },
       {$unwind: "$message"},
-      {$match: {"message.receivername": req.params.name.replace(/-/g, ' ')}},
+      {$match: {"message.receivername": req.params.name.replace(/-/g, ' ')}}, //use req.body.name
       { $sort: { 'message.createdAt': -1 }}
     ]);
     
@@ -93,7 +93,7 @@ exports.receiverMessage = async (req, res) => {
 }
 
 exports.markMessage = async (req, res) => {
-    const receiverName = req.params.receivername.replace(/-/g, ' ')
+//    const receiverName = req.params.receivername.replace(/-/g, ' ')
     
     const msg = await Message.aggregate([
       {$match: {$and: [{'message.receivername': req.body.receiver, 'message.sendername':req.body.sender}]}},

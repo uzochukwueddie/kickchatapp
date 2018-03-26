@@ -24,7 +24,7 @@ exports.getUsersLocation = async (req, res) => {
       { $project : {
         password: 0            
     }},
-      {$match: {"city": req.params.city.replace(/-/g, ' ')}}
+      {$match: {"city": req.params.city.replace(/-/g, ' ')}} //use req.body.city
     ]);
     
     if(users.length > 0){
