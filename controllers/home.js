@@ -7,10 +7,16 @@ const moment = require('moment');
 const _ = require('lodash');
 const cloudinary = require('cloudinary');
 
+//cloudinary.config({
+//    cloud_name: process.env.CLOUD_NAME,
+//    api_key: process.env.API_KEY,
+//    api_secret: process.env.API_SECRET
+//});
+
 cloudinary.config({
-    cloud_name: process.env.CLOUD_NAME,
-    api_key: process.env.API_KEY,
-    api_secret: process.env.API_SECRET
+    cloud_name: 'soccerkik',
+    api_key: '989265226925169',
+    api_secret: 'XpfsZdI01ipLp6YiOaTCK0EOPzg'
 });
 
 
