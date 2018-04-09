@@ -1,23 +1,20 @@
 var mongoose = require('mongoose');
 const Club = require('../models/club');
 const User = require('../models/user');
+const Country = require('../models/countries');
 const jwt = require('jsonwebtoken');
 const Post = require('../models/posts');
 const moment = require('moment');
 const _ = require('lodash');
 const cloudinary = require('cloudinary');
 
-//cloudinary.config({
-//    cloud_name: process.env.CLOUD_NAME,
-//    api_key: process.env.API_KEY,
-//    api_secret: process.env.API_SECRET
-//});
-
 cloudinary.config({
-    cloud_name: 'soccerkik',
-    api_key: '989265226925169',
-    api_secret: 'XpfsZdI01ipLp6YiOaTCK0EOPzg'
+    cloud_name: process.env.CLOUD_NAME,
+    api_key: process.env.API_KEY,
+    api_secret: process.env.API_SECRET
 });
+
+
 
 
 
@@ -31,6 +28,7 @@ exports.getUser = async (req, res) => {
     const user = await User.findOne({'username': username}, {'password': 0})
                             .populate('request.senderId')
                             .populate('friends.friendId')
+                            .populate('notFriends.friendId')
 
     if(!user) {
       return res.status(200).json({message: 'No user Found'})
@@ -53,59 +51,85 @@ exports.addFriend = async (req, res) => {
     const sendername = req.body.sendername;
     const receivername = req.body.receivername;
     
+    const nameReceiver = req.body.receiver_name;
+    const idReceiver = req.body.receiver_Id;
+    const nameSender = req.body.sender_name;
+    
     //...............Sending request...........................
     
-    await User.update({
-        'username': receiver,
-        'request.username': {$ne: req.body.sender},
-        'friends.name': {$ne: req.body.sender}
-    }, {
-        $push: {request: {
-            username: req.body.sender,
-            senderId: req.body.senderId
-        }},
-        $inc: {totalRequest: 1}
-    });
-    
-    await User.update({
-        'username': sender,
-        'sentRequest.username': {$ne: req.body.receiver}
-    }, {
-        $push: {sentRequest: {
-            username: req.body.receiver
-        }}
-    });
+    if(req.body.request === 'request'){
+        await User.update({
+            'username': receiver,
+            'request.username': {$ne: req.body.sender},
+            'friends.name': {$ne: req.body.sender}
+        }, {
+            $push: {request: {
+                username: req.body.sender,
+                senderId: req.body.senderId
+            }},
+            $inc: {totalRequest: 1}
+        });
+
+        await User.update({
+            'username': sender,
+            'sentRequest.username': {$ne: req.body.receiver}
+        }, {
+            $push: {sentRequest: {
+                username: req.body.receiver
+            }}
+        });
+    }
     
     //...............End...........................
     
     //...............Accepting request...........................
     
-    await User.update({
-        'username': receiverName,
-        'friends.name': {$ne: req.body.senderName}
-    }, {
-        $push: {friends: {
-            name: req.body.senderName,
-            friendId: req.body.senderid
-        }},
-        $pull: {request: {
-            username: req.body.senderName
-        }},
-        $inc: {totalRequest: -1}
-    });
     
-    await User.update({
-        'username': senderName,
-        'friends.name': {$ne: req.body.receiverName}
-    }, {
-        $push: {friends: {
-            name: req.body.receiverName,
-            friendId: req.body.receiverid
-        }},
-        $pull: {sentRequest: {
-            username: req.body.receiverName
-        }},
-    });
+    if(req.body.accept === 'accept'){
+        await User.update({
+            '_id': req.body.receiverid,
+            'friends.name': {$ne: req.body.senderName}
+        }, {
+            $push: {friends: {
+                name: req.body.senderName,
+                friendId: req.body.senderid
+            }},
+            $pull: {notFriends: {
+                name: req.body.senderName
+            }},
+            $inc: {totalRequest: -1}
+        });
+        
+        await User.update({
+            '_id': req.body.receiverid,
+        }, {
+            $pull: {request: {
+                senderId: req.body.senderid
+            }},
+            
+        });
+
+        await User.update({
+            '_id': req.body.senderid,
+            'friends.name': {$ne: req.body.receiverName}
+        }, {
+            $push: {friends: {
+                name: req.body.receiverName,
+                friendId: req.body.receiverid
+            }},
+            $pull: {notFriends: {
+                name: req.body.receiverName
+            }}
+        });
+        
+        await User.update({
+            '_id': req.body.senderid,
+        }, {
+            $pull: {sentRequest: {
+                username: req.body.receiverName
+            }}
+        });
+    }
     
     //...............End...........................
     
@@ -129,6 +153,31 @@ exports.addFriend = async (req, res) => {
             username: req.body.receivername
         }},
     });
+    
+    
+    //...................Add to not friends array........................
+    
+    if(req.body.sender_name || req.body.receiver_name){
+        await User.update({
+            "username": req.body.sender_name,
+            'notFriends.name': {$ne: req.body.receiver_name}
+        }, {
+            $push: {notFriends: {
+                name: req.body.receiver_name,
+                friendId: req.body.receiver_Id
+            }}
+        });
+        
+        await User.update({
+            "username": req.body.receiver_name,
+            'notFriends.name': {$ne: req.body.sender_name}
+        }, {
+            $push: {notFriends: {
+                name: req.body.sender_name,
+                friendId: req.body.sender_Id
+            }}
+        });
+    }
     
     //...............End...........................
     
@@ -278,9 +327,10 @@ exports.searchRoom = async (req, res) => {
     const searchName = req.body.room.replace(/-/g, ' ');
     const regex = new RegExp(searchName, 'gi');
     const room = await Club.find({"name": regex});
+    const room1 = await Country.find({"name": regex});
     
-    if(room){
-        return res.status(200).json({message: 'Search Results', rooms: _.uniqBy(room, 'name')});
+    if(room || room1){
+        return res.status(200).json({message: 'Search Results', rooms: _.uniqBy(room, 'name'), rooms1: _.uniqBy(room1, 'name')});
     } else {
         return res.status(200).json({message: 'Search Results Error', rooms: []});
     }

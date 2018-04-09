@@ -10,10 +10,10 @@ module.exports = function(io, User, _) {
             
             io.to(params.room).emit('usersList', users.GetUsersList(params.room));
             
-            let message = `This is the room for ${params.room} fans. You can now start sending messages in this room.`
+            let message = `This is the room for ${params.room} fans. Messages in this room are not saved. You can now start sending messages in this room.`
             io.to(params.room).emit('welcomeMsg', message)
             
-            socket.join(params.sender.username)
+            socket.join(params.sender.username);
             
             callback();
         });

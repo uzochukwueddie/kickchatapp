@@ -6,17 +6,18 @@ exports.createUser = async (req, res, next) => {
     const username = req.body.username;
     const email = req.body.email;
     const password = req.body.password;
+    
 
     if(!username){
-        return res.status(422).send({error: 'You must enter a username address'});
+        return res.status(200).send({error: 'You must enter a username address'});
     }
  
     if(!email){
-        return res.status(422).send({error: 'You must enter an email address'});
+        return res.status(200).send({error: 'You must enter an email address'});
     }
  
     if(!password){
-        return res.status(422).send({error: 'You must enter a password'});
+        return res.status(200).send({error: 'You must enter a password'});
     }
 
     const user = await User.find({'email': req.body.email});
@@ -40,7 +41,7 @@ exports.createUser = async (req, res, next) => {
                 });
             })
             .catch(err => {
-                res.status(500).json({error: err})
+                res.status(200).json({error: err})
             })
     }
 }
@@ -48,7 +49,8 @@ exports.createUser = async (req, res, next) => {
 exports.authUser = async (req, res) => {    
     passport.authenticate('local-login', {session: false}, (err, user, info) => {
         if (err) {
-            return res.status(400).json({
+            console.log(err)
+            return res.status(200).json({
                 error: info ? info.message : 'Login failed',
                 user   : user
             });
@@ -59,7 +61,7 @@ exports.authUser = async (req, res) => {
         } 
         
         if(user.compareUserPassword(req.body.password)){
-        const token = jwt.sign({data: user}, process.env.JSON_SECRET);
+            const token = jwt.sign({data: user}, process.env.JSON_SECRET);
             return res.status(200).json({
                 message: "Authentication successful",
                 token: `JWT ${token}`,

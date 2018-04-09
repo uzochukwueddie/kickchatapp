@@ -23,6 +23,10 @@ const userSchema = mongoose.Schema({
         name: {type: String, default: ''},
         friendId: {type: mongoose.Schema.Types.ObjectId, ref: 'User'}
     }],
+    notFriends: [{
+        name: {type: String, default: ''},
+        friendId: {type: mongoose.Schema.Types.ObjectId, ref: 'User'}
+    }],
     blockedUsers: [],
     blockedBy: [],
     totalRequest: {type: Number, default: 0},

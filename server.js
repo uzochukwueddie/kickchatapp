@@ -13,7 +13,6 @@ const _ = require('lodash');
 const compression = require('compression');
 const helmet = require('helmet');
 const morgan = require('morgan');
-//var ejwt = require('express-jwt');
 
 
 const app = express();

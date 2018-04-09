@@ -8,7 +8,7 @@ module.exports = function(io, CountryRoom, _) {
             users.AddUserData(socket.id, params.sender.username, params.room, params.sender);
             io.to(params.room).emit('roomList', users.GetUsersList(params.room));
             
-            let message = `This is the room for ${params.room} fans. You can now start sending messages in this room.`
+            let message = `This is the room for ${params.room} fans. Messages in this room are not saved. You can now start sending messages in this room.`
             io.to(params.room).emit('welcomeMessage', message)
             
             callback();
