@@ -32,7 +32,8 @@ exports.createUser = async (req, res, next) => {
         
         newUser.save()
             .then(result => {
-                const token = jwt.sign({data: newUser}, process.env.JSON_SECRET);
+                // const token = jwt.sign({data: newUser}, process.env.JSON_SECRET);
+                const token = jwt.sign({data: newUser}, 'thisisit');
 
                 return res.status(200).json({
                     message: 'User has been created.', 
@@ -49,7 +50,6 @@ exports.createUser = async (req, res, next) => {
 exports.authUser = async (req, res) => {    
     passport.authenticate('local-login', {session: false}, (err, user, info) => {
         if (err) {
-            console.log(err)
             return res.status(200).json({
                 error: info ? info.message : 'Login failed',
                 user   : user
@@ -61,7 +61,7 @@ exports.authUser = async (req, res) => {
         } 
         
         if(user.compareUserPassword(req.body.password)){
-            const token = jwt.sign({data: user}, process.env.JSON_SECRET);
+            const token = jwt.sign({data: user}, 'thisisit');
             return res.status(200).json({
                 message: "Authentication successful",
                 token: `JWT ${token}`,
