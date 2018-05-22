@@ -36,9 +36,8 @@ app.use(cors());
  })
 
 mongoose.Promise = global.Promise;
-// mongoose.connect(process.env.MONGODB_URI);
-mongoose.connect('mongodb://localhost/chatapp');
-
+mongoose.connect(process.env.MONGODB_URI);
+// mongoose.connect('mongodb://localhost/chatapp');
 
 
 app.use(express.static('public'));
@@ -78,9 +77,9 @@ app.use('/api', location);
 app.use('/api', country);
 app.use('/api', reset);
 
-
-
 app.use('/admin', admin);
+
+
 
 
 server.listen(process.env.PORT || 3000, function () {

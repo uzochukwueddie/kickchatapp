@@ -24,6 +24,7 @@ router.get('/dashboard/add-country', (req, res) => {
 router.post('/dashboard/add-country', (req, res) => {
     const country = new Country();
     country.name = req.body.country;
+    country.image = req.body.image;
     country.save((err) => {
         res.render('add-country');
     });

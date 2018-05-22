@@ -8,6 +8,7 @@ const locCtrl = require('../controllers/location');
 
 
 router.get('/location/near/:city', locCtrl.getUsersLocation);
+router.get('/location/near', locCtrl.getUsersLocations);
 
 router.post('/user/location/:id', locCtrl.addLocation);
 

@@ -32,8 +32,7 @@ exports.createUser = async (req, res, next) => {
         
         newUser.save()
             .then(result => {
-                // const token = jwt.sign({data: newUser}, process.env.JSON_SECRET);
-                const token = jwt.sign({data: newUser}, 'thisisit');
+                const token = jwt.sign({data: newUser}, process.env.JSON_SECRET);
 
                 return res.status(200).json({
                     message: 'User has been created.', 
@@ -61,7 +60,7 @@ exports.authUser = async (req, res) => {
         } 
         
         if(user.compareUserPassword(req.body.password)){
-            const token = jwt.sign({data: user}, 'thisisit');
+            const token = jwt.sign({data: user}, process.env.JSON_SECRET);
             return res.status(200).json({
                 message: "Authentication successful",
                 token: `JWT ${token}`,
