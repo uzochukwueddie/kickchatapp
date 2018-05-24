@@ -17,7 +17,9 @@ exports.getCode = async (req, res, next) => {
     await user.save();
     
     const smtpTransport = nodemailer.createTransport({
-        service: 'Gmail',
+        host: 'smtp.zoho.eu',
+        port: 465,
+        secure: true,
         auth: {
             user: process.env.EMAIL,
             pass: process.env.PASSWORD
@@ -64,7 +66,9 @@ exports.resetPassword = async (req, res, next) => {
             await user.save();
 
             const smtpTransport = nodemailer.createTransport({
-                service: 'Gmail',
+                host: 'smtp.zoho.eu',
+                port: 465,
+                secure: true,
                 auth: {
                     user: process.env.EMAIL,
                     pass: process.env.PASSWORD
