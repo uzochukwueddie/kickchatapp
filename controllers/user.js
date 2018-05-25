@@ -20,6 +20,13 @@ exports.createUser = async (req, res, next) => {
         return res.status(200).send({error: 'You must enter a password'});
     }
 
+    if(req.body.username.length > 15){
+        return res.status(200).send({error: 'Username must not be more than 15 characters long.'});
+    }
+    if (/\s/.test(req.body.username)) {
+        return res.status(200).send({error: 'Username with spaces are not allowed.'});
+    }
+
     const user = await User.find({'email': req.body.email});
     if(user.length >= 1) {
         return res.status(200).json({error: 'User with email already exist.'});
