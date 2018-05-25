@@ -13,6 +13,7 @@ const _ = require('lodash');
 const compression = require('compression');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const favicon = require('serve-favicon');
 
 
 const app = express();
@@ -20,7 +21,7 @@ const app = express();
 app.use(compression())
 app.use(helmet());
 
-
+app.use(favicon(path.join(__dirname, 'public/img', 'favicon.ico')))
 
 const server = require("http").Server(app);
 const io = require("socket.io").listen(server);
