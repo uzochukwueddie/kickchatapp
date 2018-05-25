@@ -48,6 +48,7 @@ app.use(bodyParser.json());
 app.use(passport.initialize());
 
 const admin = require('./controllers/admin');
+const index = require('./controllers/index');
 
 //require('./passport/passport-json')(passport);
 require('./passport/passport-file')
@@ -78,6 +79,7 @@ app.use('/api', country);
 app.use('/api', reset);
 
 app.use('/admin', admin);
+app.use('/', index);
 
 
 
